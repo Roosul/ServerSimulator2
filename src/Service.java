@@ -2,47 +2,51 @@ import java.io.IOException;
 
 public class Service {
     final BookRepoStaticArray bookRepoStaticArray = new BookRepoStaticArray();
-    final ReadingFromFileRepo readingFromFileRepo;
+    final ReadingFromFileRepo readingFromFileRepo = new ReadingFromFileRepo();
+    final BookRepoArrayList bookRepoArrayList= new BookRepoArrayList();
 
-    {
-        readingFromFileRepo = new ReadingFromFileRepo();
-    }
-
-    public String addBook(String name, String author, int page) {
+    public String addBook(String name, String author, int page)  {
         Book book = new Book(name, author, page);
-
         try {
-            return readingFromFileRepo.save(book);
+            if(readingFromFileRepo.save(book))
+                return "Книга создана";
+            return "Такая книга уже существует";
+        } catch (Exception e) {
+            return e.toString();
 
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
         }
+
+
 
 
     }
 
     public String getBook(int id) {
-        return readingFromFileRepo.getBook(id);
+
+        try {
+            return readingFromFileRepo.getBook(id);
+        }
+        catch (RuntimeException e){
+            return "Такой книги нет";
+        }
     }
 
     public String getAllBook() {
-        try {
-            return readingFromFileRepo.getAllBook();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+
+        return readingFromFileRepo.getAllBook();
     }
 
     public String getBookByName(String name) {
+
         try {
             Book book = readingFromFileRepo.getBookByName(name);
+            if (book == null)
+                return "Такая книга не найдена";
             return book.toString();
-        }
-            catch (BookException c){
-            return c.getMessage();
-            } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public String deleteBook(String name) {
@@ -52,16 +56,13 @@ public class Service {
 
     }
 
-    public String putBook(int id, String author, String name) {
+    public String putBook(int id, String author, String name)  {
+
         try {
             return readingFromFileRepo.putBook(id, author, name);
         } catch (BookException e) {
-            return e.getMessage();
+            return "Не удалось внести изменения";
         }
     }
-
 }
 
-
-//TODO создать интерфейс bookRepoInerface от него будут наследоваться несколько реализаций bookRepo
-//в одной будет статичный массив,в другой файл,в другой коллекции

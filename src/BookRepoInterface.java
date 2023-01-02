@@ -1,9 +1,8 @@
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public interface BookRepoInterface {
 
-    String save(Book book) throws BookException, IOException;
+    boolean save(Book book) throws BookException, IOException;
 
     boolean delete(String name);
 

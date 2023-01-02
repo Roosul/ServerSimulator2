@@ -6,19 +6,22 @@ public class BookRepoStaticArray implements BookRepoInterface {
     private int index = 0;
 
     private final Book[] books = new Book[10];
+
     @Override
-    public String save(Book book) throws BookException {
-        try {
-            return "Книга с названием"+getBookByName(book.getName())+" уже существует";
-        }
-        catch (BookException c){
-            books[index] = book;
-            index++;
-            return "Книга создана";
+    public boolean save(Book book) {
+
+        if (getBookByName(book.getName()) != null) {
+            return false;
         }
 
+
+        books[index] = book;
+        index++;
+        return true;
 
     }
+
+
     @Override
     public boolean delete(String name) {
         int id = getIdByName(name);
@@ -30,11 +33,12 @@ public class BookRepoStaticArray implements BookRepoInterface {
         return true;
 
     }
+
     @Override
     public String getBook(int id) {
-
         return books[id].toString();
     }
+
     @Override
     public String getAllBook() {
         StringBuilder q = new StringBuilder();
@@ -43,13 +47,15 @@ public class BookRepoStaticArray implements BookRepoInterface {
         return q.toString();
 
     }
+
     @Override
-    public Book getBookByName(String name) throws BookException {
+    public Book getBookByName(String name) {
         int id = getIdByName(name);
         if (id == -1)
-            throw new BookException("Такой книги нет");
+            return null;
         return books[id];
     }
+
     @Override
     public int getIdByName(String name) {
         for (int i = 0; i < index; i++)
@@ -58,6 +64,7 @@ public class BookRepoStaticArray implements BookRepoInterface {
         return -1;
 
     }
+
     @Override
     public String putBook(int id, String author, String name) throws BookException {
         if (books[id] != null) {

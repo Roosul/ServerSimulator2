@@ -1,23 +1,39 @@
 import java.io.*;
+import java.util.Arrays;
 
 public class ReadingFromFileRepo implements BookRepoInterface {
-    private int index = 0;
+    FileOutputStream fileInt;
+    ObjectOutputStream oosInt;
+
+    {
+        try {
+            fileInt = new FileOutputStream("fileint.bin");
+            oosInt = new ObjectOutputStream(fileInt);
+            int index = 0;
+            oosInt.writeObject(index);
+            oosInt.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     String path = "C:\\Users\\rasul\\IdeaProjects\\ServerSimulator\\BookRepoFile.bin";
 
     @Override
-    public String save(Book book) throws IOException {
+    public boolean save(Book book) throws IOException {
         try {
-            return "Книга с названием" + getBookByName(book.getName()) + " уже существует";
-        } catch (BookException c) {
+            String name = book.getName();
+            System.out.println(name);
+            if (getBookByName(name) != null)
+                return false;
             FileOutputStream fos = new FileOutputStream(path);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            Book [] books = new Book[10];
-            books[index] = book;
+            Book[] books = new Book[10];
             oos.writeObject(books);
-            index++;
             oos.close();
-            return "Книга создана";
+
+
+            return true;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -30,107 +46,110 @@ public class ReadingFromFileRepo implements BookRepoInterface {
         int id = getIdByName(name);
         if (id == -1)
             return false;
-
-        for (int i = id; i < index; i++) {
-            try {
-                FileInputStream fis = new FileInputStream(path);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                Book[] books = (Book[]) ois.readObject();
-                books[i] = books[i + 1];
-                ois.close();
-                FileOutputStream fos = new FileOutputStream(path);
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(books);
-                index--;
-                return true;
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            FileInputStream fis = new FileInputStream(path);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Book[] books = (Book[]) ois.readObject();
+            ois.close();
+            FileOutputStream fos = new FileOutputStream(path);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(books);
+            return true;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
 
-            @Override
-        public String getBook ( int id){
-            try {
-                FileInputStream fis = new FileInputStream(path);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                Book[] books = (Book[]) ois.readObject();
-                ois.close();
-                if (books[id] == null) {
-                    return "Нет такой книги";
-                }
-                return books[id].toString();
-
-            } catch (ClassNotFoundException | IOException e) {
-                return "ЖОПА";
+    @Override
+    public String getBook(int id) {
+        try {
+            FileInputStream fis = new FileInputStream(path);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Book[] books = (Book[]) ois.readObject();
+            ois.close();
+            if (books[id] == null) {
+                return "Нет такой книги";
             }
+            return books[id].toString();
 
-
+        } catch (ClassNotFoundException | IOException e) {
+            return "ЖОПА";
         }
 
-        @Override
-        public String getAllBook () throws IOException, ClassNotFoundException {
+
+    }
+
+    @Override
+    public String getAllBook() {
+        try {
             StringBuilder q = new StringBuilder();
             FileInputStream fis = new FileInputStream(path);
             ObjectInputStream ois = new ObjectInputStream(fis);
             Book[] books = (Book[]) ois.readObject();
             ois.close();
-            for (int i = 0; i <= index - 1; i++)
-                q.append(books[i].toString());
-            return q.toString();
-        }
-
-        @Override
-        public Book getBookByName (String name) throws BookException, IOException, ClassNotFoundException {
-            int id = getIdByName(name);
-            if (id == -1) {
-                throw new BookException("Такой книги нет");
+            for (Book book : books) {
+                if (book != null)
+                    q.append(book);
             }
+
+            return q.toString();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public Book getBookByName(String name) throws IOException, ClassNotFoundException {
+        if (getIdByName(name) == -1) {
+            return null;
+        }
+        FileInputStream fis = new FileInputStream(path);
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        Book[] books = (Book[]) ois.readObject();
+        ois.close();
+        return books[getIdByName(name)];
+    }
+
+    @Override
+    public int getIdByName(String name) {
+        try {
+            FileInputStream fis = new FileInputStream(path);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Book[] books = (Book[]) ois.readObject();
+            int i = 0;
+            ois.close();
+            for (Book book : books) {
+                if(book!=null) {
+                    if (name.equals(book.getName())) {
+                        return i;
+                    }
+                }
+                i++;
+            }
+            return -1;
+        } catch (IOException | ClassNotFoundException e) {
+            return -1;
+        }
+    }
+
+    @Override
+    public String putBook(int id, String author, String name) throws BookException {
+        try {
             FileInputStream fis = new FileInputStream(path);
             ObjectInputStream ois = new ObjectInputStream(fis);
             Book[] books = (Book[]) ois.readObject();
             ois.close();
-            return books[id];
-        }
-
-        @Override
-        public int getIdByName (String name){
-
-            try {
-                    FileInputStream fis = new FileInputStream(path);
-                    ObjectInputStream ois = new ObjectInputStream(fis);
-                    Book[] books = (Book[]) ois.readObject();
-                    ois.close();
-                    int i = 0;
-                    for(Book book : books) {
-                        if (book.getName().equals(name))
-                            return i;
-                        i++;
-                    }
-                return -1;
-            } catch (IOException | ClassNotFoundException e) {
-                return -1;
+            if (books[id] != null) {
+                books[id].setAuthor(author);
+                books[id].setName(name);
+                return "Изменение принято";
             }
+            return "Книги по такому id не найдено";
+        } catch (IOException | ClassNotFoundException e) {
+            return "Книги по такому id не найдено";
         }
 
-        @Override
-        public String putBook ( int id, String author, String name) throws BookException {
-            try {
-                FileInputStream fis = new FileInputStream(path);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                Book[] books = (Book[]) ois.readObject();
-                ois.close();
-                if (books[id] != null) {
-                    books[id].setAuthor(author);
-                    books[id].setName(name);
-                    return "Изменение принято";
-                }
-                return "Книги по такому id не найдено";
-            } catch (IOException | ClassNotFoundException e) {
-                return "Книги по такому id не найдено";
-            }
-
-        }
     }
+}
