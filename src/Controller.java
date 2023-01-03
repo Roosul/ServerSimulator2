@@ -1,3 +1,5 @@
+import java.io.IOException;
+
 public class Controller {
     final Service service = new Service();
 
@@ -15,7 +17,11 @@ public class Controller {
     }
 
     public String getAllBook() {
-        return service.getAllBook();
+        try {
+            return service.getAllBook();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getBookByName(String name) {

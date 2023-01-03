@@ -4,11 +4,12 @@ public class Service {
     final BookRepoStaticArray bookRepoStaticArray = new BookRepoStaticArray();
     final ReadingFromFileRepo readingFromFileRepo = new ReadingFromFileRepo();
     final BookRepoArrayList bookRepoArrayList= new BookRepoArrayList();
+    final BookRepoHashMap bookRepoHashMap = new BookRepoHashMap();
 
     public String addBook(String name, String author, int page)  {
         Book book = new Book(name, author, page);
         try {
-            if(readingFromFileRepo.save(book))
+            if(bookRepoHashMap.save(book))
                 return "Книга создана";
             return "Такая книга уже существует";
         } catch (Exception e) {
@@ -24,33 +25,35 @@ public class Service {
     public String getBook(int id) {
 
         try {
-            return readingFromFileRepo.getBook(id);
+            return bookRepoHashMap.getBook(id);
         }
         catch (RuntimeException e){
             return "Такой книги нет";
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public String getAllBook() {
+    public String getAllBook() throws IOException, ClassNotFoundException {
 
-        return readingFromFileRepo.getAllBook();
+        return bookRepoHashMap.getAllBook();
     }
 
     public String getBookByName(String name) {
 
         try {
-            Book book = readingFromFileRepo.getBookByName(name);
+            Book book = bookRepoHashMap.getBookByName(name);
             if (book == null)
                 return "Такая книга не найдена";
             return book.toString();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException | BookException e) {
             throw new RuntimeException(e);
         }
 
     }
 
     public String deleteBook(String name) {
-        if (readingFromFileRepo.delete(name))
+        if (bookRepoHashMap.delete(name))
             return "Книга удалена";
         return "Такой книги с таким названием нет";
 
@@ -59,7 +62,7 @@ public class Service {
     public String putBook(int id, String author, String name)  {
 
         try {
-            return readingFromFileRepo.putBook(id, author, name);
+            return bookRepoHashMap.putBook(id, author, name);
         } catch (BookException e) {
             return "Не удалось внести изменения";
         }

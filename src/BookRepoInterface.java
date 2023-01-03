@@ -2,7 +2,7 @@ import java.io.IOException;
 
 public interface BookRepoInterface {
 
-    boolean save(Book book) throws BookException, IOException;
+    boolean save(Book book) throws BookException, IOException, ClassNotFoundException;
 
     boolean delete(String name);
 
